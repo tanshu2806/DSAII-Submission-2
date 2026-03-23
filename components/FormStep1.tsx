@@ -36,6 +36,11 @@ export function FormStep1({ onNext, isLoading }: FormStep1Props) {
     const newErrors: Record<string, string> = {};
 
     if (!formData.eventType) newErrors.eventType = "Event Type is required";
+    if (formData.eventType === "BattleGrid" && !formData.gameType)
+      newErrors.gameType = "Game is required for BattleGrid";
+    if (formData.eventType === "BattleGrid" && (formData.gameType === "Freefire" || formData.gameType === "BGMI") && !formData.gameMode)
+      newErrors.gameMode = "Mode is required for Freefire/BGMI";
+
     if (!formData.collegeName.trim())
       newErrors.collegeName = "College Name is required";
 
@@ -76,10 +81,23 @@ export function FormStep1({ onNext, isLoading }: FormStep1Props) {
   };
 
   const handleEventTypeChange = (eventType: string) => {
+    if (eventType === "BattleGrid") {
+      setFormData({
+        ...formData,
+        eventType,
+        gameType: "",
+        gameMode: "",
+        teamSize: "",
+        members: [],
+      });
+      setErrors({});
+      return;
+    }
+
     const defaultSize =
       eventType === "CineQuest" || eventType === "Innovex" ? 2 :
       eventType === "Contentflux" || eventType === "Geovoyager" ? 2 :
-      eventType === "The Spiral" ? 2 : 1;
+      1;
     const defaultMembers = Array.from({ length: defaultSize }, () => ({ name: "", contact: "", email: "" }));
     setFormData({
       ...formData,
@@ -93,22 +111,32 @@ export function FormStep1({ onNext, isLoading }: FormStep1Props) {
   };
 
   const handleGameTypeChange = (gameType: string) => {
-    // Valorant is always 5; FreeFire/BGMI need mode selection first
-    const teamSize = gameType === "Valorant" ? "5" : "1";
-    const count = gameType === "Valorant" ? 5 : 1;
-    const newMembers = Array.from({ length: count }, () => ({
-      name: "",
-      contact: "",
-      email: "",
-    }));
-
-    setFormData({
-      ...formData,
-      gameType,
-      gameMode: "",
-      teamSize,
-      members: newMembers,
-    });
+    if (gameType === "Valorant") {
+      const newMembers = Array.from({ length: 5 }, () => ({ name: "", contact: "", email: "" }));
+      setFormData({
+        ...formData,
+        gameType,
+        gameMode: "",
+        teamSize: "5",
+        members: newMembers,
+      });
+    } else if (gameType === "Freefire" || gameType === "BGMI") {
+      setFormData({
+        ...formData,
+        gameType,
+        gameMode: "",
+        teamSize: "",
+        members: [],
+      });
+    } else {
+      setFormData({
+        ...formData,
+        gameType,
+        gameMode: "",
+        teamSize: "",
+        members: [],
+      });
+    }
     setErrors({});
   };
 
@@ -144,7 +172,7 @@ export function FormStep1({ onNext, isLoading }: FormStep1Props) {
   };
 
   const getTeamSizeOptions = (eventType: string) => {
-    if (eventType === "CineQuest" || eventType === "Innovex" || eventType === "The Spiral")
+    if (eventType === "CineQuest" || eventType === "Innovex")
       return ["2", "3", "4"];
     return ["1"];
   };
@@ -176,10 +204,15 @@ export function FormStep1({ onNext, isLoading }: FormStep1Props) {
           collegeName: formData.collegeName,
         });
       } else {
-        setErrors({ form: "Failed to submit form" });
+        const errorData = await response.json().catch(() => null);
+        const errorMessage =
+          (errorData && (errorData.error || errorData.message)) ||
+          "Failed to submit form";
+        setErrors({ form: errorMessage });
         setIsSubmitting(false);
       }
     } catch (error) {
+      console.error("Form submission exception:", error);
       setErrors({ form: "An error occurred. Please try again." });
       setIsSubmitting(false);
     }
@@ -253,8 +286,8 @@ export function FormStep1({ onNext, isLoading }: FormStep1Props) {
           <option value="Geovoyager" className="bg-zinc-900 text-zinc-50">
             Geovoyager
           </option>
-          <option value="The Spiral" className="bg-zinc-900 text-zinc-50">
-            The Spiral
+          <option value="BattleGrid" className="bg-zinc-900 text-zinc-50">
+            BattleGrid
           </option>
         </select>
         {/* Custom arrow icon since appearance-none hides the default one */}
@@ -280,7 +313,53 @@ export function FormStep1({ onNext, isLoading }: FormStep1Props) {
 
       {formData.eventType && (
           <>
-            {formData.eventType !== "Contentflux" &&
+            {formData.eventType === "BattleGrid" ? (
+              <>
+                <motion.div variants={itemVariants} className="mb-6">
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">
+                    Game
+                  </label>
+                  <select
+                    value={formData.gameType}
+                    onChange={(e) => handleGameTypeChange(e.target.value)}
+                    className="w-full h-10 px-3 py-2 bg-zinc-900 border border-zinc-700 text-zinc-50 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-500"
+                  >
+                    <option value="" disabled>
+                      Select Game
+                    </option>
+                    <option value="Valorant">Valorant</option>
+                    <option value="Freefire">Freefire</option>
+                    <option value="BGMI">BGMI</option>
+                  </select>
+                  {errors.gameType && (
+                    <p className="text-red-400 text-sm mt-2">{errors.gameType}</p>
+                  )}
+                </motion.div>
+
+                {(formData.gameType === "Freefire" || formData.gameType === "BGMI") && (
+                  <motion.div variants={itemVariants} className="mb-6">
+                    <label className="block text-sm font-medium text-zinc-300 mb-2">
+                      Mode
+                    </label>
+                    <select
+                      value={formData.gameMode}
+                      onChange={(e) => handleGameModeChange(e.target.value)}
+                      className="w-full h-10 px-3 py-2 bg-zinc-900 border border-zinc-700 text-zinc-50 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-500"
+                    >
+                      <option value="" disabled>
+                        Select Mode
+                      </option>
+                      <option value="Duo">Duo</option>
+                      <option value="Squad">Squad</option>
+                    </select>
+                    {errors.gameMode && (
+                      <p className="text-red-400 text-sm mt-2">{errors.gameMode}</p>
+                    )}
+                  </motion.div>
+                )}
+              </>
+            ) : (
+              formData.eventType !== "Contentflux" &&
               formData.eventType !== "Geovoyager" && (
               <motion.div variants={itemVariants} className="mb-6">
                 <label className="block text-sm font-medium text-zinc-300 mb-2">
@@ -298,6 +377,7 @@ export function FormStep1({ onNext, isLoading }: FormStep1Props) {
                   ))}
                 </select>
               </motion.div>
+            )
             )}
 
             <motion.div variants={itemVariants} className="mb-6">

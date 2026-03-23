@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 
@@ -19,7 +19,16 @@ interface FormStep2Props {
 
 // Entry fee lookup based on event, game, and mode
 function getEntryFee(eventType: string, gameType?: string, gameMode?: string): string {
-  if (eventType === 'The Spiral') return '₹299 per team';
+  if (eventType === 'BattleGrid') {
+    if (gameType === 'Valorant') return '₹250 per team';
+    if (gameType === 'BGMI' || gameType === 'Freefire') {
+      if (gameMode === 'Squad') return '₹200 per team';
+      if (gameMode === 'Duo') return '₹120 per team';
+      return 'Select mode for pricing';
+    }
+    return 'Select game for pricing';
+  }
+
   if (eventType === 'Innovex') return '₹399 per team';
   if (eventType === 'CineQuest') return '₹299 per team';
   if (eventType === 'Geovoyager') return '₹149 per team';
@@ -28,10 +37,27 @@ function getEntryFee(eventType: string, gameType?: string, gameMode?: string): s
 }
 
 // Events that use Payment_SS1; all others use Payment_SS2
-const SS1_EVENTS = new Set(['The Spiral', 'Geovoyager']);
+const SS1_EVENTS = new Set(['Geovoyager']);
 
 export function FormStep2({ email, eventType, gameType, gameMode, teamSize, captainName, onBack, onComplete, isLoading }: FormStep2Props) {
-  const qrImage = SS1_EVENTS.has(eventType) ? '/Payment_SS1.jpeg' : '/Payment_SS2.jpeg';
+  // For BattleGrid, use the dedicated QR image (create this in public/)
+  // Fallback to default PaymentSS if unavailable (avoid broken QR box)
+  const qrImage = eventType === 'BattleGrid'
+    ? '/BattleGridPaymentSS.jpeg'
+    : SS1_EVENTS.has(eventType)
+      ? '/Payment_SS1.jpeg'
+      : '/Payment_SS2.jpeg';
+
+  const fallbackImage = '/PaymentSS.jpeg';
+  const initialQrImage = eventType === 'BattleGrid' ? '/BattleGridPaymentSS.jpeg' : qrImage;
+  const [displayQrImage, setDisplayQrImage] = useState(initialQrImage);
+
+  useEffect(() => {
+    const source = eventType === 'BattleGrid' ? '/BattleGridPaymentSS.jpeg' : qrImage;
+    setDisplayQrImage(source);
+  }, [eventType, qrImage]);
+
+
   const entryFee = getEntryFee(eventType, gameType, gameMode);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -201,11 +227,12 @@ export function FormStep2({ email, eventType, gameType, gameMode, teamSize, capt
         )}
         <div className="relative w-56 h-56 rounded-xl overflow-hidden border border-zinc-700 shadow-lg">
           <Image
-            key={qrImage}
-            src={qrImage}
+            key={displayQrImage}
+            src={displayQrImage}
             alt={`Payment QR Code for ${eventType}`}
             fill
             className="object-contain bg-white"
+            onError={() => setDisplayQrImage(fallbackImage)}
           />
         </div>
       </motion.div>

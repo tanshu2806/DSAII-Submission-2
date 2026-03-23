@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     else if (eventType === 'Innovex') sheetName = 'Innovex';
     else if (eventType === 'Contentflux') sheetName = 'Contentflux';
     else if (eventType === 'Geovoyager') sheetName = 'Geovoyager';
-    else if (eventType === 'The Spiral') sheetName = 'TheSpiral';
+    else if (eventType === 'BattleGrid') sheetName = 'BattleGrid';
 
     if (!sheetName) {
       return NextResponse.json(
@@ -48,8 +48,8 @@ export async function POST(request: NextRequest) {
       teamSize,
     ];
 
-    // Max 4 members for all events
-    const maxMembers = 4;
+    // Max 5 members required for Valorant; for other events may contain fewer
+    const maxMembers = 5;
     for (let i = 0; i < maxMembers; i++) {
       if (i < members.length) {
         values.push(members[i].name, members[i].email, members[i].contact);

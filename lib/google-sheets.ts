@@ -7,12 +7,19 @@ const SCOPES = [
 ];
 
 export async function getGoogleAuthClient() {
+  const privateKeyRaw = process.env.GOOGLE_PRIVATE_KEY;
+  const privateKey = privateKeyRaw ? privateKeyRaw.replace(/\\n/g, '\n') : undefined;
+
+  if (!privateKey) {
+    throw new Error('Google service account private key not configured (GOOGLE_PRIVATE_KEY).');
+  }
+
   const auth = new google.auth.GoogleAuth({
     credentials: {
       type: 'service_account',
       project_id: process.env.GOOGLE_PROJECT_ID,
       private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID,
-      private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      private_key: privateKey,
       client_email: process.env.GOOGLE_CLIENT_EMAIL,
       client_id: process.env.GOOGLE_CLIENT_ID,
       auth_uri: 'https://accounts.google.com/o/oauth2/auth',
@@ -22,6 +29,19 @@ export async function getGoogleAuthClient() {
     },
     scopes: SCOPES,
   });
+
+  // Validate the auth client immediately so failures become obvious.
+  try {
+    await auth.getClient();
+  } catch (error) {
+    console.error('Google auth client creation failed:', error);
+    if (error instanceof Error && error.message.includes('ERR_OSSL_UNSUPPORTED')) {
+      throw new Error(
+        'Google auth failed due to OpenSSL decoder unsupported key format. Use a valid unencrypted service account key or run with --openssl-legacy-provider.'
+      );
+    }
+    throw error;
+  }
 
   return auth;
 }
