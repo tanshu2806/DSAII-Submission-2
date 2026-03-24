@@ -15,6 +15,7 @@ interface FormStep1Props {
     gameMode: string;
     teamSize: string;
     collegeName: string;
+    teamName?: string;
   }) => void;
   isLoading: boolean;
 }
@@ -26,6 +27,7 @@ export function FormStep1({ onNext, isLoading }: FormStep1Props) {
     gameMode: "",
     teamSize: "1",
     collegeName: "",
+    teamName: "",
     members: [{ name: "", contact: "", email: "" }], // Captain is members[0]
   });
 
@@ -43,6 +45,9 @@ export function FormStep1({ onNext, isLoading }: FormStep1Props) {
 
     if (!formData.collegeName.trim())
       newErrors.collegeName = "College Name is required";
+
+    if (formData.eventType && !formData.teamName.trim())
+      newErrors.teamName = "Team Name is required";
 
     formData.members.forEach(
       (
@@ -97,6 +102,7 @@ export function FormStep1({ onNext, isLoading }: FormStep1Props) {
     const defaultSize =
       eventType === "CineQuest" || eventType === "Innovex" ? 2 :
       eventType === "Contentflux" || eventType === "Geovoyager" ? 2 :
+      eventType === "Spiral" ? 2 :
       1;
     const defaultMembers = Array.from({ length: defaultSize }, () => ({ name: "", contact: "", email: "" }));
     setFormData({
@@ -105,6 +111,7 @@ export function FormStep1({ onNext, isLoading }: FormStep1Props) {
       gameType: "",
       gameMode: "",
       teamSize: defaultSize.toString(),
+      teamName: "",
       members: defaultMembers,
     });
     setErrors({});
@@ -172,7 +179,7 @@ export function FormStep1({ onNext, isLoading }: FormStep1Props) {
   };
 
   const getTeamSizeOptions = (eventType: string) => {
-    if (eventType === "CineQuest" || eventType === "Innovex")
+    if (eventType === "CineQuest" || eventType === "Innovex" || eventType === "Spiral")
       return ["2", "3", "4"];
     return ["1"];
   };
@@ -202,6 +209,7 @@ export function FormStep1({ onNext, isLoading }: FormStep1Props) {
           gameMode: formData.gameMode,
           teamSize: formData.teamSize,
           collegeName: formData.collegeName,
+          teamName: formData.teamName,
         });
       } else {
         const errorData = await response.json().catch(() => null);
@@ -288,6 +296,9 @@ export function FormStep1({ onNext, isLoading }: FormStep1Props) {
           </option>
           <option value="BattleGrid" className="bg-zinc-900 text-zinc-50">
             BattleGrid
+          </option>
+          <option value="Spiral" className="bg-zinc-900 text-zinc-50">
+            Spiral
           </option>
         </select>
         {/* Custom arrow icon since appearance-none hides the default one */}
@@ -401,6 +412,30 @@ export function FormStep1({ onNext, isLoading }: FormStep1Props) {
                 </p>
               )}
             </motion.div>
+
+            {formData.eventType && (
+              <motion.div variants={itemVariants} className="mb-6">
+                <label className="block text-sm font-medium text-zinc-300 mb-2">
+                  Team Name
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Enter your team name"
+                  value={formData.teamName}
+                  onChange={(e) => {
+                    setFormData({ ...formData, teamName: e.target.value });
+                    if (errors.teamName)
+                      setErrors({ ...errors, teamName: "" });
+                  }}
+                  className="w-full bg-zinc-900 border-zinc-700 text-zinc-50 placeholder:text-zinc-600 focus:border-zinc-500 focus:ring-zinc-500"
+                />
+                {errors.teamName && (
+                  <p className="text-red-400 text-sm mt-2">
+                    {errors.teamName}
+                  </p>
+                )}
+              </motion.div>
+            )}
 
             {formData.members.map((member, index) => (
               <motion.div

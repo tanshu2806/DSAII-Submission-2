@@ -12,6 +12,7 @@ interface FormStep2Props {
   gameMode?: string;
   teamSize?: string;
   captainName?: string;
+  teamName?: string;
   onBack: () => void;
   onComplete: () => void;
   isLoading: boolean;
@@ -39,7 +40,7 @@ function getEntryFee(eventType: string, gameType?: string, gameMode?: string): s
 // Events that use Payment_SS1; all others use Payment_SS2
 const SS1_EVENTS = new Set(['Geovoyager']);
 
-export function FormStep2({ email, eventType, gameType, gameMode, teamSize, captainName, onBack, onComplete, isLoading }: FormStep2Props) {
+export function FormStep2({ email, eventType, gameType, gameMode, teamSize, captainName, teamName, onBack, onComplete, isLoading }: FormStep2Props) {
   // For BattleGrid, use the dedicated QR image (create this in public/)
   // Fallback to default PaymentSS if unavailable (avoid broken QR box)
   const qrImage = eventType === 'BattleGrid'
@@ -211,6 +212,12 @@ export function FormStep2({ email, eventType, gameType, gameMode, teamSize, capt
             <div className="flex justify-between items-center">
               <span className="text-zinc-500 text-sm">Captain</span>
               <span className="text-zinc-200 text-sm font-medium">{captainName}</span>
+            </div>
+          )}
+          {teamName && (
+            <div className="flex justify-between items-center">
+              <span className="text-zinc-500 text-sm">Team Name</span>
+              <span className="text-zinc-200 text-sm font-medium">{teamName}</span>
             </div>
           )}
           <div className="flex justify-between items-center pt-2 border-t border-zinc-800 mt-1">

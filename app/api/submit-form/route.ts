@@ -3,7 +3,7 @@ import { getGoogleAuthClient, appendToSheet } from '@/lib/google-sheets';
 
 export async function POST(request: NextRequest) {
   try {
-    const { eventType, gameType, teamSize, collegeName, members } = await request.json();
+    const { eventType, gameType, teamSize, collegeName, teamName, members } = await request.json();
 
     if (!eventType || !collegeName || !members || !members.length) {
       return NextResponse.json(
@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
     else if (eventType === 'Contentflux') sheetName = 'Contentflux';
     else if (eventType === 'Geovoyager') sheetName = 'Geovoyager';
     else if (eventType === 'BattleGrid') sheetName = 'BattleGrid';
+    else if (eventType === 'Spiral') sheetName = 'Spiral';
 
     if (!sheetName) {
       return NextResponse.json(
@@ -45,6 +46,7 @@ export async function POST(request: NextRequest) {
       timestamp,
       displayEventType,
       collegeName,
+      teamName || '', // Empty if not Spiral
       teamSize,
     ];
 
