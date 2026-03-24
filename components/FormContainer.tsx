@@ -10,10 +10,10 @@ type Step = 'step1' | 'step2' | 'success';
 
 export function FormContainer() {
   const [step, setStep] = useState<Step>('step1');
-  const [formData, setFormData] = useState({ eventType: '', gameType: '', gameMode: '', teamSize: '1', collegeName: '', teamName: '', members: [{ name: '', contact: '', email: '' }] });
+  const [formData, setFormData] = useState({ eventType: '', gameType: '', gameMode: '', teamSize: '1', collegeName: '', teamName: '', referedBy: '', members: [{ name: '', contact: '', email: '' }] });
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleStep1Next = (data: { name: string; contact: string; email: string; eventType: string; gameType: string; gameMode: string; teamSize: string; collegeName: string; teamName?: string }) => {
+  const handleStep1Next = (data: { name: string; contact: string; email: string; eventType: string; gameType: string; gameMode: string; teamSize: string; collegeName: string; teamName?: string; referedBy?: string }) => {
     setFormData((prev) => ({
       ...prev,
       eventType: data.eventType,
@@ -22,6 +22,7 @@ export function FormContainer() {
       teamSize: data.teamSize,
       collegeName: data.collegeName,
       teamName: data.teamName || '',
+      referedBy: data.referedBy || '',
       members: [{ name: data.name, contact: data.contact, email: data.email }, ...prev.members.slice(1)]
     }));
     setStep('step2');
@@ -37,7 +38,7 @@ export function FormContainer() {
 
   const handleReset = () => {
     setStep('step1');
-    setFormData({ eventType: '', gameType: '', gameMode: '', teamSize: '1', collegeName: '', teamName: '', members: [{ name: '', contact: '', email: '' }] });
+    setFormData({ eventType: '', gameType: '', gameMode: '', teamSize: '1', collegeName: '', teamName: '', referedBy: '', members: [{ name: '', contact: '', email: '' }] });
   };
 
   const progressVariants = {
@@ -145,6 +146,7 @@ export function FormContainer() {
               teamSize={formData.teamSize}
               captainName={formData.members[0].name}
               teamName={formData.teamName}
+              referedBy={formData.referedBy}
               onBack={handleStep2Back}
               onComplete={handleStep2Complete}
               isLoading={isLoading}
@@ -159,6 +161,7 @@ export function FormContainer() {
               teamSize={formData.teamSize}
               captainName={formData.members[0].name}
               teamName={formData.teamName}
+              referedBy={formData.referedBy}
             />
           )}
         </motion.div>

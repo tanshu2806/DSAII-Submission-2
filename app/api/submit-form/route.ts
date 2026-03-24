@@ -3,7 +3,7 @@ import { getGoogleAuthClient, appendToSheet } from '@/lib/google-sheets';
 
 export async function POST(request: NextRequest) {
   try {
-    const { eventType, gameType, teamSize, collegeName, teamName, members } = await request.json();
+    const { eventType, gameType, teamSize, collegeName, teamName, referedBy, members } = await request.json();
 
     if (!eventType || !collegeName || !members || !members.length) {
       return NextResponse.json(
@@ -46,7 +46,8 @@ export async function POST(request: NextRequest) {
       timestamp,
       displayEventType,
       collegeName,
-      teamName || '', // Empty if not Spiral
+      teamName || '', 
+      referedBy || '', // New field at Column E
       teamSize,
     ];
 

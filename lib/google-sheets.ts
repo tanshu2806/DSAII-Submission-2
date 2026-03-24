@@ -89,10 +89,10 @@ export async function updateRowWithPayment(
 
   const rows = response.data.values || [];
 
-  // Find the last row where captain email matches (column G = index 6)
+  // Find the last row where captain email matches (column H = index 7)
   let targetRowIndex = -1;
   for (let i = 0; i < rows.length; i++) {
-    if (rows[i][6] === captainEmail) {
+    if (rows[i][7] === captainEmail) {
       targetRowIndex = i; // keep going — match the most recent entry
     }
   }
@@ -102,9 +102,9 @@ export async function updateRowWithPayment(
     return false;
   }
 
-  // Write Transaction ID to column R (18th col) and Screenshot URL to column S (19th col)
+  // Write Transaction ID to column S (19th col) and Screenshot URL to column T (20th col)
   // This matches the fixed header: ...M4Contact | Transaction ID | Screenshot
-  const cellRange = `${sheetName}!R${targetRowIndex + 1}:S${targetRowIndex + 1}`;
+  const cellRange = `${sheetName}!S${targetRowIndex + 1}:T${targetRowIndex + 1}`;
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
